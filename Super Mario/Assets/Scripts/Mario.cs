@@ -13,13 +13,15 @@ public class Mario : MonoBehaviour {
 	public AudioSource AudioPulo;
 	public AudioSource AudioMoeda;
 
+    public Text vidasText;
+    public Text moedasText;
+
     private bool ViradoDireita;
 	private Animator anim;
 	private float distProChao;
     private void Start()
     {
         ViradoDireita = true;
-		distProChao = Physics2D.Raycast (pontoProChao.transform.position, -Vector2.up).distance;
         if(!PlayerPrefs.HasKey("TotalMoedas"))
         {
             PlayerPrefs.SetInt("TotalMoedas", 0);
@@ -29,6 +31,7 @@ public class Mario : MonoBehaviour {
         {
             PlayerPrefs.SetInt("Vidas", 5);
         }
+        moedasText.text = "Moedas: " + PlayerPrefs.GetInt("TotalMoedas");
     }
 
     private void FixedUpdate()
@@ -37,7 +40,6 @@ public class Mario : MonoBehaviour {
         float pulo = Input.GetAxisRaw("Pulo");
         Rigidbody2D rb = GetComponent<Rigidbody2D>();
         Animator anim = GetComponent<Animator>();
-		Debug.Log (noChao () + " | " + distProChao);
         // Verifica se vai aplicar força para andar
         if ((x < 0 && rb.velocity.x > -VelocidadeAndando) || (x>0 && rb.velocity.x < VelocidadeAndando))
         {
@@ -64,7 +66,8 @@ public class Mario : MonoBehaviour {
 		anim.SetBool("NoChao", noChao());
 
         // Atualiza rótulo
-        LabelVidas.GetComponent<Text>().text = "Vidas: " + PlayerPrefs.GetInt("Vidas");
+        vidasText.text = "Vidas: " + PlayerPrefs.GetInt("Vidas");
+        
     }
 
     private void OnTriggerEnter2D(Collider2D col)
@@ -79,10 +82,17 @@ public class Mario : MonoBehaviour {
 
 	private void PegarMoeda(){
 		AudioMoeda.Play ();
-	}
+        int coins = PlayerPrefs.GetInt("TotalMoedas");
+        PlayerPrefs.SetInt("TotalMoedas", coins + 1);
+        if(coins % 5 == 0)
+        {
+            PlayerPrefs.SetInt("Vidas", PlayerPrefs.GetInt("Vidas")+1);
+        }
+        moedasText.text = "Moedas: " + PlayerPrefs.GetInt("TotalMoedas");
+    }
 
 	private bool noChao(){
-		return !Physics2D.Raycast (pontoProChao.transform.position, -Vector2.up, distProChao + 0.1f);
+		return Physics2D.Raycast(pontoProChao.transform.position, -Vector2.up, -1f, 1 << LayerMask.NameToLayer("Ground"));
 	}
 
 }
